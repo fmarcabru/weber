@@ -7,5 +7,6 @@ requires-python = ">=3.13"
 dependencies = [
     "bleak>=0.22.3",
     "pydantic>=2.11.4",
+    "pytest>=8.3.5",
     "telegram>=0.0.1",
 ]

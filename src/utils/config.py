@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 import json
 from pathlib import Path
-
+from typing import List
 
 class Config(BaseModel):
     # waiting period between bluetooth scans
@@ -21,7 +21,8 @@ class Config(BaseModel):
     reset_ble_adapter_after_fail: bool = True
     # max retries before reset ble adapter
     max_retries_before_warning: int = Field(..., ge=1)
-    temperature_uuid: str
+    # List of UUIDs for each probe
+    probe_uuids: List[str]
     service_uuid: str
     # normal operating temperature range
     min_temp_c: float = Field(..., ge=-100, le=100)  # Reasonable min/max temp range

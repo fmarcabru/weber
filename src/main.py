@@ -51,13 +51,15 @@ async def run_session(status: ConnectionStatus, config: Config):
                 print("\nDiscovering all services and characteristics...")
                 await print_services(client)
 
-                while client.is_connected:
-                    print("inside while client.is_connected")
+                # Subscribe to all probe notifications
+                for position, probe_uuid in enumerate(config.probe_uuids):
+                    print(f"\nSubscribing to probe {position+1} characteristic: {probe_uuid}")
                     await client.start_notify(
-                        config.temperature_uuid,
-                        lambda _, data: handle_notification(data, status, config),
+                        probe_uuid,
+                        lambda _, data, pos=position+1, uuid=probe_uuid: handle_notification(pos, data, status, config, uuid)
                     )
-                    print("Connected and subscribed to temperatures.")
+
+                while client.is_connected:
                     await asyncio.sleep(config.scan_interval_sec)
 
             finally:
@@ -104,4 +106,7 @@ if __name__ == "__main__":
 
     config = Config.load_from_file()
 
-    asyncio.run(run_session(status, config))
+    try:
+        asyncio.run(run_session(status, config))
+    except KeyboardInterrupt:
+        print("done")

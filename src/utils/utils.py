@@ -17,30 +17,18 @@ class ConnectionStatus:
 
 def parse_temperatures(data: bytearray):
     """Parse temperature data from iGrill2 probes.
-    Each probe temperature is 2 bytes, little endian.
-    Value 0xFFFF indicates no probe connected.
+    Each probe temperature is 3 bytes, little endian.
+    first 2 bytes is the temp, the 3rd one not sure.
+    Value 0x30f8 indicates no probe connected.
     Temperatures are in Fahrenheit.
     """
     print(f"Raw temperature data: {data.hex()}")
-    temps = []
-    for i in range(0, len(data), 2):
-        raw = int.from_bytes(data[i : i + 2], byteorder="little")
-        if (
-            raw == 0xFFFF or raw == 0xF830
-        ):  # Both 0xFFFF and 0xF830 indicate disconnected probe
-            temp = None
-        else:
-            # Convert from raw value to Fahrenheit
-            temp = raw / 10.0
-            # Convert to Celsius if needed
-            temp = (temp - 32) * 5 / 9
-        temps.append(temp)
 
-    # Ensure we always return 4 temperatures (one for each probe)
-    while len(temps) < 4:
-        temps.append(None)
+    if str(data.hex()) == "30f800":
+        print("probe not connected")
+        return None 
 
-    return temps
+    return int.from_bytes(data[:2], byteorder='little')
 
 
 # Edge Case Handling
@@ -134,42 +122,38 @@ async def connect_with_retry(
 async def print_services(client: BleakClient):
     """Print all available services and characteristics."""
     print("\nAvailable Services and Characteristics:")
-    for service in client.services:
-        print(f"\nService: {service.uuid}")
-        for char in service.characteristics:
-            print(f"  Characteristic: {char.uuid}")
-            print(f"    Properties: {char.properties}")
+    # for service in client.services:
+    #     print(f"\nService: {service.uuid}")
+    #     for char in service.characteristics:
+    #         print(f"  Characteristic: {char.uuid}")
+    #         print(f"    Properties: {char.properties}")
 
 
 def handle_notification(
+    pos: int,
     data: bytearray,
     status: ConnectionStatus,
     config: Config,
     characteristic_uuid: str = None,
 ):
-    print(f"\nReceived notification from characteristic: {characteristic_uuid}")
-    temps = parse_temperatures(data)
+    print(f"\nReceived notification from {pos} characteristic: {characteristic_uuid}")
+    temp = parse_temperatures(data)
     now = time.time()
 
     # Temperature out of range alert
-    for i, temp in enumerate(temps, 1):
-        if temp is not None:  # Only check connected probes
-            if temp < config.min_temp_c or temp > config.max_temp_c:
-                if now - status.last_alert_time > config.alert_interval_sec:
-                    alert_message = (
-                        f"[ALERT] Probe {i} temperature out of range: {temp:.1f}°C"
-                    )
-                    print(alert_message)
-                    status.last_alert_time = now
+    if temp is not None:  # Only check connected probes
+        if temp < config.min_temp_c or temp > config.max_temp_c:
+            if now - status.last_alert_time > config.alert_interval_sec:
+                alert_message = (
+                    f"[ALERT] Probe {pos} temperature out of range: {temp:.1f}°C"
+                )
+                print(alert_message)
+                status.last_alert_time = now
 
     status.last_temp_time = now
 
     # Log if enabled
     if config.log_temperature_values:
-        temp_str = ", ".join(
-            f"Probe {i + 1}: {t:.1f}°C"
-            if t is not None
-            else f"Probe {i + 1}: Not Connected"
-            for i, t in enumerate(temps)
-        )
+        temp_str = f"Probe: {temp:.1f}°F" if temp is not None else f"Probe: Not Connected"
+
         print(f"Temperatures: {temp_str}")
