@@ -7,7 +7,7 @@ class Config(BaseModel):
     # waiting period between bluetooth scans
     scan_interval_sec: int = Field(..., ge=1)  # Ensure positive interval
     # waiting period for bluetooth scan to complete
-    scan_timeout_sec: int = Field(..., ge=1)   # Ensure positive timeout
+    scan_timeout_sec: int = Field(..., ge=1)  # Ensure positive timeout
     # waiting period between connection checks after a disconnect
     connection_check_interval: int = Field(..., ge=1)
     # connection timeout in seconds
@@ -21,8 +21,8 @@ class Config(BaseModel):
     reset_ble_adapter_after_fail: bool = True
     # max retries before reset ble adapter
     max_retries_before_warning: int = Field(..., ge=1)
-    temperature_uuid:str
-    service_uuid:str
+    temperature_uuid: str
+    service_uuid: str
     # normal operating temperature range
     min_temp_c: float = Field(..., ge=-100, le=100)  # Reasonable min/max temp range
     max_temp_c: float = Field(..., ge=-100, le=200)
@@ -31,17 +31,18 @@ class Config(BaseModel):
     # switch to print temperatures
     log_temperature_values: bool = True
 
-
     @classmethod
-    def load_from_file(cls, config_path: str | Path = Path("src/config/conf.json")) -> "Config":
+    def load_from_file(
+        cls, config_path: str | Path = Path("src/config/conf.json")
+    ) -> "Config":
         """Load configuration from a JSON file.
-        
+
         Args:
             config_path: Path to the JSON configuration file
-            
+
         Returns:
             Config: A Config instance with values from the file
-            
+
         Raises:
             FileNotFoundError: If the config file doesn't exist
             json.JSONDecodeError: If the JSON file is invalid
@@ -50,10 +51,8 @@ class Config(BaseModel):
         config_path = Path(config_path)
         if not config_path.exists():
             raise FileNotFoundError(f"Config file not found: {config_path}")
-            
-        with open(config_path, 'r') as f:
-            config_data = json.load(f)
-            
-        return cls(**config_data)
 
-    
+        with open(config_path, "r") as f:
+            config_data = json.load(f)
+
+        return cls(**config_data)
