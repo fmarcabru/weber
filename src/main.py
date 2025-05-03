@@ -40,6 +40,9 @@ async def run_session(status: ConnectionStatus, config: Config):
                 status.connected_once = True
                 status.retry_count = 0
 
+                # Print all services and characteristics
+                print("\nDiscovering all services and characteristics...")
+                await print_services(client)
                 
                 while client.is_connected:
                     print("inside while client.is_connected")

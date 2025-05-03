@@ -16,11 +16,28 @@ class ConnectionStatus:
 
 
 def parse_temperatures(data: bytearray):
+    """Parse temperature data from iGrill2 probes.
+    Each probe temperature is 2 bytes, little endian.
+    Value 0xFFFF indicates no probe connected.
+    Temperatures are in Fahrenheit.
+    """
+    print(f"Raw temperature data: {data.hex()}")
     temps = []
     for i in range(0, len(data), 2):
         raw = int.from_bytes(data[i:i+2], byteorder='little')
-        temp = raw / 10.0 if raw != 0xffff else None
+        if raw == 0xFFFF or raw == 0xF830:  # Both 0xFFFF and 0xF830 indicate disconnected probe
+            temp = None
+        else:
+            # Convert from raw value to Fahrenheit
+            temp = raw / 10.0
+            # Convert to Celsius if needed
+            temp = (temp - 32) * 5/9
         temps.append(temp)
+    
+    # Ensure we always return 4 temperatures (one for each probe)
+    while len(temps) < 4:
+        temps.append(None)
+    
     return temps
 
 
@@ -120,20 +137,26 @@ async def print_services(client: BleakClient):
             print(f"    Properties: {char.properties}")
 
 
-def handle_notification(data: bytearray, status: ConnectionStatus, config: Config):
+def handle_notification(data: bytearray, status: ConnectionStatus, config: Config, characteristic_uuid: str = None):
+    print(f"\nReceived notification from characteristic: {characteristic_uuid}")
     temps = parse_temperatures(data)
     now = time.time()
 
     # Temperature out of range alert
-    for temp in temps:
-        if temp < config.min_temp_c or temp > config.max_temp_c:
-            if now - status.last_alert_time > config.alert_interval_sec:
-                alert_message = f"[ALERT] Temperature out of range: {temp}°C"
-                print(alert_message)
-                status.last_alert_time = now
+    for i, temp in enumerate(temps, 1):
+        if temp is not None:  # Only check connected probes
+            if temp < config.min_temp_c or temp > config.max_temp_c:
+                if now - status.last_alert_time > config.alert_interval_sec:
+                    alert_message = f"[ALERT] Probe {i} temperature out of range: {temp:.1f}°C"
+                    print(alert_message)
+                    status.last_alert_time = now
 
     status.last_temp_time = now
 
     # Log if enabled
     if config.log_temperature_values:
-        print(f"Temperatures: {temps}")
+        temp_str = ", ".join(
+            f"Probe {i+1}: {t:.1f}°C" if t is not None else f"Probe {i+1}: Not Connected" 
+            for i, t in enumerate(temps)
+        )
+        print(f"Temperatures: {temp_str}")
