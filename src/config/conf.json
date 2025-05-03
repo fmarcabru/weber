@@ -1,0 +1,17 @@
+{
+    "scan_interval_sec": 10,
+    "scan_timeout_sec": 5,
+    "connection_check_interval": 10,
+    "log_temperature_values": true,
+    "disconnect_alert_after_sec": 300,
+    "no_probe_data_after_sec": 300,
+    "alert_interval_sec": 60,
+    "device_name_contains": "iGrill",
+    "reset_ble_adapter_after_fail": true,
+    "max_retries_before_warning": 5,
+    "temperature_uuid": "06ef0002-2e06-4b79-9e33-fce2c42805ec",
+    "service_uuid": "ada7590f-2e6d-469e-8f7b-1822b386a5e9",
+    "min_temp_c": 20.0,
+    "max_temp_c": 150.0
+  }
+  
