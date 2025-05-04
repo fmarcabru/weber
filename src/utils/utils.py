@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import time
 from .config import Config
 import asyncio
-from bleak import BleakClient, BleakError, BLEDevice
+from bleak import BleakClient, BleakError, BLEDevice, BleakScanner
 
 
 @dataclass
@@ -85,6 +85,30 @@ def reset_ble_adapter():
     subprocess.run(["sudo", "hciconfig", "hci0", "up"])
 
 
+async def pair_device_bleak(device: BLEDevice, client: BleakClient):
+    """Pair with the iGrill2 device using Bleak."""
+    print(f"Attempting to pair with {device.address}...")
+
+    print(f"will pair with device: {device.name}")
+    
+    # Create client
+    try:
+        # Pair the device first
+        print("--> pairing device")
+        await client.pair()
+        
+
+        print("Successfully paired and connected")
+        return True
+    except Exception as e:
+        print(f"Failed to pair/connect: {str(e)}")
+        return False
+    finally:
+        if client.is_connected:
+            await client.disconnect()
+
+
+# Keep the original pair_device for bluetoothctl
 async def pair_device(device_address: str):
     """Pair with the iGrill2 device using bluetoothctl."""
     print(f"Attempting to pair with {device_address}...")
@@ -100,14 +124,26 @@ async def pair_device(device_address: str):
     subprocess.run(["bluetoothctl", "scan", "on"])
     await asyncio.sleep(5)  # Give more time for scanning
 
+    # Set up agent and default agent
+    print("--> setting up bluetooth agent")
+    subprocess.run(["bluetoothctl", "agent", "NoInputNoOutput"])  # Use NoInputNoOutput for headless
+    subprocess.run(["bluetoothctl", "default-agent"])
+    await asyncio.sleep(1)
+
     # Pair and trust the device
     print("--> pair and trust the device")
-    subprocess.run(["bluetoothctl", "agent", "on"])
-    subprocess.run(["bluetoothctl", "default-agent"])
     subprocess.run(["bluetoothctl", "pair", device_address])
     await asyncio.sleep(2)
     subprocess.run(["bluetoothctl", "trust", device_address])
     await asyncio.sleep(2)
+
+    # Verify the device is paired and trusted
+    result = subprocess.run(["bluetoothctl", "info", device_address], capture_output=True, text=True)
+    if "Paired: yes" not in result.stdout or "Trusted: yes" not in result.stdout:
+        print("Warning: Device not properly paired or trusted")
+        return False
+
+    print("--> pairing and trusting successful")
     return True
 
 

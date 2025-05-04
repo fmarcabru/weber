@@ -6,6 +6,7 @@ from src.utils import (
     connect_with_retry,
     handle_notification,
     ConnectionStatus,
+    pair_device_bleak,
 )
 
 
@@ -26,7 +27,7 @@ async def connect_and_monitor(status: ConnectionStatus):
         return
 
     print(f"--> Found {igrill.name} at {igrill.address} first time")
-    await pair_device(igrill.address)
+    await pair_device_bleak(igrill, client)
 
     print(f"Connecting to {igrill.name}...")
     await connect_with_retry(igrill, client,status.config)
