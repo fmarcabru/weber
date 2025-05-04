@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import time
 from .config import Config
 import asyncio
-from bleak import BleakClient, BleakError, BLEDevice
+from bleak import BleakClient, BleakError, BLEDevice, BleakScanner
 
 
 @dataclass
@@ -85,12 +85,36 @@ def reset_ble_adapter():
     subprocess.run(["sudo", "hciconfig", "hci0", "up"])
 
 
+async def pair_device_bleak(device: BLEDevice, client: BleakClient):
+    """Pair with the iGrill2 device using Bleak."""
+    print(f"Attempting to pair with {device.address}...")
+
+    print(f"will pair with device: {device.name}")
+    
+    # Create client
+    try:
+        # Pair the device first
+        print("--> pairing device")
+        await client.pair()
+        
+
+        print("Successfully paired and connected")
+        return True
+    except Exception as e:
+        print(f"Failed to pair/connect: {str(e)}")
+        return False
+    finally:
+        if client.is_connected:
+            await client.disconnect()
+
+
+# Keep the original pair_device for bluetoothctl
 async def pair_device(device_address: str):
     """Pair with the iGrill2 device using bluetoothctl."""
     print(f"Attempting to pair with {device_address}...")
 
-    print("--> removing existing pairing")
     # First, remove any existing pairing
+    print("--> removing existing pairing")
     subprocess.run(["bluetoothctl", "remove", device_address])
     await asyncio.sleep(2)
 
