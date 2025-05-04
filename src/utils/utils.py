@@ -89,10 +89,10 @@ async def pair_device(device_address: str):
     """Pair with the iGrill2 device using bluetoothctl."""
     print(f"Attempting to pair with {device_address}...")
 
-    print("--> removing existing pairing")
-    # First, remove any existing pairing
-    subprocess.run(["bluetoothctl", "remove", device_address])
-    await asyncio.sleep(2)
+    # print("--> removing existing pairing")
+    # # First, remove any existing pairing
+    # subprocess.run(["bluetoothctl", "remove", device_address])
+    # await asyncio.sleep(2)
 
     # Power on and start scanning
     print("--> power on and start scanning")
