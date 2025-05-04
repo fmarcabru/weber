@@ -20,18 +20,18 @@ class Config(BaseModel):
     # bluetooth device name contains
     device_name_contains: str = "iGrill"
     reset_ble_adapter_after_fail: bool = True
-    # max retries before reset ble adapter
-    max_retries_before_warning: int = Field(..., ge=1)
     # List of UUIDs for each probe
     probe_uuids: List[str]
     service_uuid: str
     # normal operating temperature range
     min_temp_c: float = Field(..., ge=-100, le=100)  # Reasonable min/max temp range
     max_temp_c: float = Field(..., ge=-100, le=200)
-    # waiting period between alerts
+    # minimum time between alerts
     alert_interval_sec: int = Field(..., ge=1)
     # switch to print temperatures
     log_temperature_values: bool = True
+    # max retries to connect to the device
+    max_retries: int = Field(..., ge=1)
 
     @classmethod
     def load_from_file(

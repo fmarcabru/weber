@@ -5,6 +5,7 @@ import asyncio
 
 if __name__ == "__main__":
     try:
-        asyncio.run(run_session(ConnectionStatus(), Config.load_from_file()))
+        connection_status = ConnectionStatus(Config.load_from_file())
+        asyncio.run(run_session(connection_status))
     except KeyboardInterrupt:
         print("Terminated by user")

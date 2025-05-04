@@ -1,4 +1,3 @@
-import pytest
 from src.utils import parse_temperatures
 from src.utils.config import Config
 

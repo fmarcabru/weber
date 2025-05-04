@@ -8,7 +8,7 @@
     "alert_interval_sec": 60,
     "device_name_contains": "iGrill",
     "reset_ble_adapter_after_fail": true,
-    "max_retries_before_warning": 5,
+    "max_retries": 3,
     "probe_uuids": [
         "06ef0002-2e06-4b79-9e33-fce2c42805ec",
         "06ef0004-2e06-4b79-9e33-fce2c42805ec",
