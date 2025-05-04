@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import List
 
+
 class Config(BaseModel):
     # waiting period between bluetooth scans
     scan_interval_sec: int = Field(..., ge=1)  # Ensure positive interval

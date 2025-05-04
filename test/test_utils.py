@@ -1,5 +1,7 @@
 import pytest
 from src.utils import parse_temperatures
+from src.utils.config import Config
+
 
 def test_parse_temperatures_normal():
     # Test normal temperature values
@@ -13,6 +15,10 @@ def test_parse_temperatures_normal():
 
 def test_parse_temperatures_all_disconnected():
     # Test all probes disconnected (0xFFFF)
-    data = bytearray([0x30,0xf8,0x00])
+    data = bytearray([0x30, 0xF8, 0x00])
     assert parse_temperatures(data) is None
 
+
+def test_config_load():
+    config = Config.load_from_file()
+    assert config is not None

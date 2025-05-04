@@ -8,10 +8,10 @@ from bleak import BleakClient, BleakError
 
 @dataclass
 class ConnectionStatus:
-    last_temp_time: float
-    last_disconnect_time: float
-    last_alert_time: float
-    connected_once: bool
+    last_temp_time: float = 0
+    last_disconnect_time: float = 0
+    last_alert_time: float = 0
+    connected_once: bool = False
     retry_count: int = 0
 
 
@@ -26,9 +26,9 @@ def parse_temperatures(data: bytearray):
 
     if str(data.hex()) == "30f800":
         print("probe not connected")
-        return None 
+        return None
 
-    return int.from_bytes(data[:2], byteorder='little')
+    return int.from_bytes(data[:2], byteorder="little")
 
 
 # Edge Case Handling
@@ -154,6 +154,8 @@ def handle_notification(
 
     # Log if enabled
     if config.log_temperature_values:
-        temp_str = f"Probe: {temp:.1f}°F" if temp is not None else f"Probe: Not Connected"
+        temp_str = (
+            f"Probe: {temp:.1f}°F" if temp is not None else f"Probe: Not Connected"
+        )
 
         print(f"Temperatures: {temp_str}")
